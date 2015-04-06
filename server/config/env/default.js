@@ -67,6 +67,16 @@ var defaults = {
       hsts: false,
       xssProtection: true
     }
+  },
+  mailer: {
+    defaultEmailAddress: 'support@eratecycle.com',
+    serviceConfig: {
+      service: 'Mandrill',
+      auth: {
+        user: 'nnance@saassourcer.com',
+        pass: 'lEaHkIAUBKFL9ij22HCFQw'
+      }
+    }
   }
 };
 
