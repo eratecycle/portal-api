@@ -10,6 +10,30 @@ var nodemailer = require('nodemailer');
 var emailTemplates = require('email-templates');
 var path = require('path');
 var templatesDir = path.resolve(__dirname, '..', 'templates/mailer');
+
+var createError = function(msg) {
+  var err = new Error();
+  err.status = 400;
+  err.message = msg;
+  return err;
+}
+
+/**
+* GET /user
+* Get profile information.
+*/
+
+var getProfile = function(req, res, next) {
+  User.findById(req.user._id, function(err, user) {
+    if (err) {
+      return next(err);
+    }
+
+    res.send(user);
+  });
+};
+
+
 /**
 * POST /user
 * Create a new local account.
@@ -28,14 +52,16 @@ var createAccount = function(req, res, next) {
   if (errors) {
     req.flash('errors', errors);
     if (req.accepts('json')) {
-      res.status(400);
-      return res.send(errors);
+      return next(createError(errors));
     } else {
       return res.redirect('/signup');
     }
   }
 
   var user = new User({
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    organization: req.body.organization,
     email: req.body.email,
     password: req.body.password
   });
@@ -48,8 +74,7 @@ var createAccount = function(req, res, next) {
         msg: 'Account with that email address already exists.'
       });
       if (req.accepts('json')) {
-        res.status(400);
-        return res.send({msg: 'Account already exists'});
+        return next(createError('Account already exists'));
       } else {
         return res.redirect('/signup');
       }
@@ -213,6 +238,7 @@ var deleteAccount = function(req, res, next) {
 };
 
 module.exports = {
+  getProfile: getProfile,
   createAccount: createAccount,
   updateProfile: updateProfile,
   updatePassword: updatePassword,

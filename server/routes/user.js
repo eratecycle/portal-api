@@ -9,6 +9,8 @@ var auth = require('../auth');
 
 var routes = function(app) {
 
+  app.get('/user', auth.isAuthenticated, userController.getProfile);
+
   // Create
   app.post('/user', userController.createAccount);
 

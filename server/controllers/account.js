@@ -10,6 +10,13 @@ var nodemailer = require('nodemailer');
 var passport = require('passport');
 var User = require('mongoose').model('user');
 
+var createError = function(msg) {
+  var err = new Error();
+  err.status = 400;
+  err.message = msg;
+  return err;
+};
+
 /**
  * GET /login
  * Login page.
@@ -39,7 +46,11 @@ var postLogin = function(req, res, next) {
   var errors = req.validationErrors();
   if (errors) {
     req.flash('errors', errors);
-    return res.redirect('/login');
+    if (req.accepts('json')) {
+      return next(createError(errors));
+    } else {
+      return res.redirect('/login');
+    }
   }
 
   // Authenticate using local strategy
@@ -51,7 +62,11 @@ var postLogin = function(req, res, next) {
       req.flash('errors', {
         msg: info.message
       });
-      return res.redirect('/login');
+      if (req.accepts('json')) {
+        return next(createError(info.message));
+      } else {
+        return res.redirect('/login');
+      }
     }
     req.logIn(user, function(err) {
       if (err) {
@@ -60,7 +75,11 @@ var postLogin = function(req, res, next) {
       req.flash('success', {
         msg: 'Success! You are logged in.'
       });
-      res.redirect(req.session.returnTo || '/');
+      if (req.accepts('json')) {
+        res.send(user);
+      } else {
+        res.redirect(req.session.returnTo || '/');
+      }
     });
   })(req, res, next);
 };
