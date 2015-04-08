@@ -5,7 +5,8 @@
 
 // Production specific configuration
 var prodConfig = {
-  logLevel: 'short'
+  logLevel: 'short',
+  siteURL: 'http://www.eratecycle.com'
 };
 
 module.exports = prodConfig;

@@ -6,6 +6,7 @@
 
 var async = require('async');
 var crypto = require('crypto');
+var config = require('../config/env/default');
 var nodemailer = require('nodemailer');
 var passport = require('passport');
 var User = require('mongoose').model('user');
@@ -154,7 +155,11 @@ var postReset = function(req, res, next) {
   var errors = req.validationErrors();
   if (errors) {
     req.flash('errors', errors);
-    return res.redirect('back');
+    if (req.accepts('json')) {
+      return next(createError(errors));
+    } else {
+      return res.redirect('back');
+    }
   }
 
   // Run asnyc operations in a synchronous fashion
@@ -169,10 +174,13 @@ var postReset = function(req, res, next) {
         .where('resetPasswordExpires').gt(new Date())
         .exec(function(err, user) {
           if (!user) {
-            req.flash('errors', {
-              msg: 'Password reset token is invalid or has expired.'
-            });
-            return res.redirect('back');
+            var msg = 'Password reset token is invalid or has expired.';
+            req.flash('errors', {msg: msg});
+            if (req.accepts('json')) {
+              return next(createError(msg));
+            } else {
+              return res.redirect('back');
+            }
           }
 
           user.password = req.body.password;
@@ -199,8 +207,8 @@ var postReset = function(req, res, next) {
       // Create email message
       var mailOptions = {
         to: user.email,
-        from: 'yeogurt@yoururl.com',
-        subject: 'Your Yeogurt password has been changed',
+        from: config.mailer.defaultEmailAddress,
+        subject: 'Your E-Rate Cycle password has been changed',
         text: 'Hello,\n\n' +
           'This is a confirmation that the password for your account ' + user.email + ' has just been changed.\n'
       };
@@ -216,7 +224,11 @@ var postReset = function(req, res, next) {
     if (err) {
       return next(err);
     }
-    res.redirect('/');
+    if (req.accepts('json')) {
+      res.send({});
+    } else {
+      res.redirect('/');
+    }
   });
 };
 
@@ -249,7 +261,11 @@ var postForgot = function(req, res, next) {
 
   if (errors) {
     req.flash('errors', errors);
-    return res.redirect('/forgot');
+    if (req.accepts('json')) {
+      return next(createError(errors));
+    } else {
+      return res.redirect('/forgot');
+    }
   }
 
   // Run asnyc operations in a synchronous fashion
@@ -270,10 +286,13 @@ var postForgot = function(req, res, next) {
           return next(err);
         }
         if (!user) {
-          req.flash('errors', {
-            msg: 'No account with that email address exists.'
-          });
-          return res.redirect('/forgot');
+          var msg = 'No account with that email address exists.';
+          req.flash('errors', {msg: msg});
+          if (req.accepts('json')) {
+            return next(createError(msg));
+          } else {
+            return res.redirect('/forgot');
+          }
         }
 
         user.resetPasswordToken = token;
@@ -287,15 +306,15 @@ var postForgot = function(req, res, next) {
     },
     function(token, user, done) {
       // Setup email transport
-      var transporter = nodemailer.createTransport();
+      var transporter = nodemailer.createTransport(config.mailer.serviceConfig);
       // Create email message
       var mailOptions = {
         to: user.email,
-        from: 'yeogurt@yoururl.com',
-        subject: 'Reset your password on Yeogurt',
+        from: config.mailer.defaultEmailAddress,
+        subject: 'Reset your password on E-Rate Cycle',
         text: 'You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\n' +
           'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-          'http://' + req.headers.host + '/reset/' + token + '\n\n' +
+          config.siteURL + '/reset/?id=' + token + '\n\n' +
           'If you did not request this, please ignore this email and your password will remain unchanged.\n'
       };
       // Send email
@@ -310,7 +329,11 @@ var postForgot = function(req, res, next) {
     if (err) {
       return next(err);
     }
-    res.redirect('/forgot');
+    if (req.accepts('json')) {
+      res.send({});
+    } else {
+      res.redirect('/forgot');
+    }
   });
 };
 
