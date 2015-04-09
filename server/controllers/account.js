@@ -7,8 +7,8 @@
 var async = require('async');
 var crypto = require('crypto');
 var config = require('../config/env/default');
-var nodemailer = require('nodemailer');
 var passport = require('passport');
+var mailer = require('../helpers/mailer');
 var User = require('mongoose').model('user');
 
 var createError = function(msg) {
@@ -175,6 +175,7 @@ var postReset = function(req, res, next) {
         .exec(function(err, user) {
           if (!user) {
             var msg = 'Password reset token is invalid or has expired.';
+
             req.flash('errors', {msg: msg});
             if (req.accepts('json')) {
               return next(createError(msg));
@@ -202,18 +203,13 @@ var postReset = function(req, res, next) {
         });
     },
     function(user, done) {
-      // Setup email transport
-      var transporter = nodemailer.createTransport();
       // Create email message
       var mailOptions = {
-        to: user.email,
-        from: config.mailer.defaultEmailAddress,
-        subject: 'Your E-Rate Cycle password has been changed',
-        text: 'Hello,\n\n' +
-          'This is a confirmation that the password for your account ' + user.email + ' has just been changed.\n'
+        email: user.email,
+        subject: 'Your E-Rate Cycle password has been changed'
       };
       // Send email
-      transporter.sendMail(mailOptions, function(err) {
+      mailer.sendMail('password-reset', mailOptions, function(err) {
         req.flash('success', {
           msg: 'Success! Your password has been changed.'
         });
@@ -305,20 +301,15 @@ var postForgot = function(req, res, next) {
       });
     },
     function(token, user, done) {
-      // Setup email transport
-      var transporter = nodemailer.createTransport(config.mailer.serviceConfig);
       // Create email message
       var mailOptions = {
-        to: user.email,
-        from: config.mailer.defaultEmailAddress,
+        email: user.email,
         subject: 'Reset your password on E-Rate Cycle',
-        text: 'You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\n' +
-          'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-          config.siteURL + '/reset/?id=' + token + '\n\n' +
-          'If you did not request this, please ignore this email and your password will remain unchanged.\n'
+        siteURL: config.siteURL,
+        token: token
       };
       // Send email
-      transporter.sendMail(mailOptions, function(err) {
+      mailer.sendMail('password-forgot', mailOptions, function(err) {
         req.flash('info', {
           msg: 'An e-mail has been sent to ' + user.email + ' with further instructions.'
         });
