@@ -33,7 +33,7 @@ var defaults = {
   },
   database: {
     // URL to connect to database
-    url: process.env.DBURL || 'mongodb://localhost:27017/erate-cycle',
+    url: process.env.MONGOLAB_URI || 'mongodb://localhost:27017/erate-cycle',
     // Mongoose database options
     options: {
       server: {
