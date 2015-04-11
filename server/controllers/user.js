@@ -7,13 +7,6 @@
 var User = require('mongoose').model('user');
 var mailer = require('../helpers/mailer');
 
-var createError = function(msg) {
-  var err = new Error();
-  err.status = 400;
-  err.message = msg;
-  return err;
-}
-
 /**
 * GET /user
 * Get profile information.
@@ -48,7 +41,8 @@ var createAccount = function(req, res, next) {
   if (errors) {
     req.flash('errors', errors);
     if (req.accepts('json')) {
-      return next(createError(errors));
+      res.status(400);
+      return res.send(errors);
     } else {
       return res.redirect('/signup');
     }
@@ -66,11 +60,13 @@ var createAccount = function(req, res, next) {
     email: req.body.email
   }, function(err, existingUser) {
     if (existingUser) {
-      req.flash('errors', {
+      var msg = {
         msg: 'Account with that email address already exists.'
-      });
+      };
+      req.flash('errors', msg);
       if (req.accepts('json')) {
-        return next(createError('Account already exists'));
+        res.status(400);
+        return res.send(msg);
       } else {
         return res.redirect('/signup');
       }

@@ -11,13 +11,6 @@ var passport = require('passport');
 var mailer = require('../helpers/mailer');
 var User = require('mongoose').model('user');
 
-var createError = function(msg) {
-  var err = new Error();
-  err.status = 400;
-  err.message = msg;
-  return err;
-};
-
 /**
  * GET /login
  * Login page.
@@ -48,7 +41,8 @@ var postLogin = function(req, res, next) {
   if (errors) {
     req.flash('errors', errors);
     if (req.accepts('json')) {
-      return next(createError(errors));
+      res.status(400);
+      return res.send(errors);
     } else {
       return res.redirect('/login');
     }
@@ -60,11 +54,13 @@ var postLogin = function(req, res, next) {
       return next(err);
     }
     if (!user) {
-      req.flash('errors', {
+      var msg = {
         msg: info.message
-      });
+      };
+      req.flash('errors', msg);
       if (req.accepts('json')) {
-        return next(createError(info.message));
+        res.status(400);
+        return res.send(msg);
       } else {
         return res.redirect('/login');
       }
@@ -156,7 +152,8 @@ var postReset = function(req, res, next) {
   if (errors) {
     req.flash('errors', errors);
     if (req.accepts('json')) {
-      return next(createError(errors));
+      res.status(400);
+      return res.send(errors);
     } else {
       return res.redirect('back');
     }
@@ -178,7 +175,8 @@ var postReset = function(req, res, next) {
 
             req.flash('errors', {msg: msg});
             if (req.accepts('json')) {
-              return next(createError(msg));
+              res.status(400);
+              return res.send(msg);
             } else {
               return res.redirect('back');
             }
@@ -258,7 +256,8 @@ var postForgot = function(req, res, next) {
   if (errors) {
     req.flash('errors', errors);
     if (req.accepts('json')) {
-      return next(createError(errors));
+      res.status(400);
+      return res.send(errors);
     } else {
       return res.redirect('/forgot');
     }
@@ -285,7 +284,8 @@ var postForgot = function(req, res, next) {
           var msg = 'No account with that email address exists.';
           req.flash('errors', {msg: msg});
           if (req.accepts('json')) {
-            return next(createError(msg));
+            res.status(400);
+            return res.send(msg);
           } else {
             return res.redirect('/forgot');
           }
