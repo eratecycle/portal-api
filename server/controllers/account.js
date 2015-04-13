@@ -126,10 +126,16 @@ var reset = function(req, res, next) {
         return next(err);
       }
       if (!user) {
-        req.flash('errors', {
+        var msg = {
           msg: 'Password reset token is invalid or has expired.'
-        });
-        return res.redirect('/forgot');
+        };
+        req.flash('errors', msg);
+        if (req.accepts('json')) {
+          res.status(400);
+          return res.send(msg);
+        } else {
+          return res.redirect('/forgot');
+        }
       }
       res.render('account/reset', {
         title: 'Password Reset'
@@ -171,9 +177,10 @@ var postReset = function(req, res, next) {
         .where('resetPasswordExpires').gt(new Date())
         .exec(function(err, user) {
           if (!user) {
-            var msg = 'Password reset token is invalid or has expired.';
-
-            req.flash('errors', {msg: msg});
+            var msg = {
+              msg: 'Password reset token is invalid or has expired.'
+            }
+            req.flash('errors', msg);
             if (req.accepts('json')) {
               res.status(400);
               return res.send(msg);
@@ -281,8 +288,10 @@ var postForgot = function(req, res, next) {
           return next(err);
         }
         if (!user) {
-          var msg = 'No account with that email address exists.';
-          req.flash('errors', {msg: msg});
+          var msg = {
+            msg: 'No account with that email address exists.'
+          }
+          req.flash('errors', msg);
           if (req.accepts('json')) {
             res.status(400);
             return res.send(msg);
