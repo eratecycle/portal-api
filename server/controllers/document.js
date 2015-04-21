@@ -1,6 +1,7 @@
 'use strict';
 
 var config = require('../config/env/default');
+var parsePDFStatement = require('../helpers/verizon-parser');
 
 /**
  * GET /files
@@ -35,13 +36,20 @@ var uploadDocument = function(req, res, next) {
       } else {
         user.files = [files.file];
       }
-      user.save(function (err, user, numberAffected) {
-        if (err) {
-          res.status(500);
-          res.send({msg: err});
+      parsePDFStatement(files.file.path, function(err, results){
+        if (user.transactions) {
+          user.transactions.push(results);
         } else {
-          res.send(files.file);
+          user.transactions = results;
         }
+        user.save(function (err, user, numberAffected) {
+          if (err) {
+            res.status(500);
+            res.send({msg: err});
+          } else {
+            res.send(files.file);
+          }
+        });
       });
   }
 };

@@ -28,8 +28,9 @@ var userSchema = new mongoose.Schema({
   resetPasswordToken: String,
   resetPasswordExpires: Date,
 
-  // files
-  files : { type : Array , "default" : [] }
+  // details
+  files : { type : Array , "default" : [] },
+  transactions : { type : Array , "default" : [] }
 });
 
 // Run before saving any data

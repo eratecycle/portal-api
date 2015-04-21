@@ -6,3 +6,4 @@ client/bower_components
 .grunt
 .DS_Store
 .yo-rc.json
+uploads
