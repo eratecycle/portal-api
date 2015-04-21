@@ -38,7 +38,9 @@ var uploadDocument = function(req, res, next) {
       }
       parsePDFStatement(files.file.path, function(err, results){
         if (user.transactions) {
-          user.transactions.push(results);
+          results.forEach(function(trans){
+            user.transactions.push(trans);
+          });
         } else {
           user.transactions = results;
         }

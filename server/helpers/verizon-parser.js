@@ -13,46 +13,6 @@ global.navigator = { userAgent: "node" };
 global.PDFJS = {};
 global.DOMParser = require('pdfjs-dist/build/pdf.combined').DOMParserMock;
 
-// require('pdfjs-dist/build/pdf.combined');
-
-// NB: we'd have to move these inside function scope if we wanted this file to provide a method that could be run multiple times in parallel
-var totalPaymentsFromStatement,
-totalPaymentsFromTransactions,
-totalReceiptsFromStatement,
-totalReceiptsFromTransactions,
-transactions,
-currentTransactionDate,
-statementYear;
-
-function parsePDFBill(data, fileName, callback) {
-  PDFJS.getDocument(data).then(function (doc) {
-
-    var numPages = doc.numPages;
-    console.info('# Document Loaded');
-    console.info('Number of Pages: ' + numPages);
-    console.info();
-
-    doc.getMetadata().then(function (data) {
-      console.info('# Metadata Is Loaded');
-      console.info('## Info');
-      console.info(JSON.stringify(data.info, null, 2));
-      console.info();
-      if (data.metadata) {
-        console.info('## Metadata');
-        console.info(JSON.stringify(data.metadata.metadata, null, 2));
-        console.info();
-      }
-    });
-
-  }).then(function () {
-    console.info('# End of Document');
-    callback(null, transactions);
-  }, function (err) {
-    console.error('Error: ' + err);
-    callback(err);
-  });
-}
-
 /*
 * Parse a PDF data stream for statement data
 * Safe to use in a browser
@@ -60,16 +20,12 @@ function parsePDFBill(data, fileName, callback) {
 function parsePDFStatement(data, fileName, callback) {
 
   // reset global variable each time
-  totalPaymentsFromStatement = 0;
+  var totalPaymentsFromStatement = 0;
   totalPaymentsFromTransactions = 0;
   totalReceiptsFromStatement = 0;
   totalReceiptsFromTransactions = 0;
   transactions = [];
   currentTransactionDate = '';
-
-  // get the statement year from the filename
-  var statementFileNameDelimiter = 'Statement_'; // e.g. Statement_20140807.pdf
-  statementYear = fileName.substr(fileName.lastIndexOf(statementFileNameDelimiter)+statementFileNameDelimiter.length,4);
 
   // Will be using promises to load document, pages and misc data instead of
   // callback.
