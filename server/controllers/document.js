@@ -28,6 +28,7 @@ var uploadDocument = function(req, res, next) {
   }
   else {
       // dropzone will send multiple requests per default
+      files.file.dateAdded = new Date();
       console.log('Got one file ' + files.file.path);
       if (user.files) {
         user.files.push(files.file);
