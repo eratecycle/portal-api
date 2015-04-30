@@ -3,6 +3,7 @@
 */
 
 'use strict';
+var _ = require('lodash');
 
 var User = require('mongoose').model('user');
 var mailer = require('../helpers/mailer');
@@ -13,7 +14,7 @@ var mailer = require('../helpers/mailer');
 */
 
 var getProfile = function(req, res, next) {
-  User.findById(req.user._id, function(err, user) {
+  User.findById(req.user._id, '-password -__v').populate('entity').exec(function(err, user) {
     if (err) {
       return next(err);
     }
@@ -137,6 +138,28 @@ var updateProfile = function(req, res, next) {
 };
 
 /**
+* PUT /user/:id
+* Update user information.
+*/
+
+var updateUser = function(req, res) {
+  var updateObj = _.omit(req.body, ['_id']);
+  
+  if (updateObj.entity && updateObj.entity._id) {
+    updateObj.entity = updateObj.entity._id;
+  }
+
+	User.findById(req.params.id,function(err, user){
+		if(err) throw new Error(err);
+
+		user.update(updateObj,function(err,count){
+			if(err) throw new Error(err);
+			res.send(req.body);
+		});
+	});
+};
+
+/**
 * PUT /user/password
 * Update current password.
 * @param password
@@ -194,6 +217,7 @@ module.exports = {
   getProfile: getProfile,
   createAccount: createAccount,
   updateProfile: updateProfile,
+  updateUser: updateUser,
   updatePassword: updatePassword,
   deleteAccount: deleteAccount
 };

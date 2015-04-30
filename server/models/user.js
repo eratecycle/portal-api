@@ -1,6 +1,7 @@
 'use strict';
 var bcrypt = require('bcrypt-nodejs');
 var mongoose = require('mongoose');
+var Entity = require('./entity');
 
 var userSchema = new mongoose.Schema({
   email: {
@@ -30,7 +31,9 @@ var userSchema = new mongoose.Schema({
 
   // details
   files : { type : Array , "default" : [] },
-  transactions : { type : Array , "default" : [] }
+  transactions : { type : Array , "default" : [] },
+
+  entity: { type: mongoose.Schema.ObjectId, ref: 'entity' }
 });
 
 // Run before saving any data

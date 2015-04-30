@@ -16,6 +16,7 @@ var routes = function(app) {
 
   // Update profile
   app.put('/user', auth.isAuthenticated, userController.updateProfile);
+  app.put('/user/:id', auth.isAuthenticated, userController.updateUser);
   app.patch('/user', auth.isAuthenticated, userController.updateProfile);
 
   // Update Password
