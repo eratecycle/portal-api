@@ -10,6 +10,8 @@ var accounting = require('accounting');
 
 var BillTypes  = require('./bill-types').BillTypes;
 
+var hj         = require('highland');
+
 // HACK few hacks to let PDF.js be loaded not as a module in global space.
 global.window = global;
 global.navigator = { userAgent: "node" };
