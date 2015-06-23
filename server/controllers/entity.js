@@ -8,6 +8,8 @@ var request = require('request');
 var cheerio = require('cheerio');
 var mongoose = require('mongoose');
 
+var rootUrl = 'http://www.sl.universalservice.org/Utilities/';
+
 /**
 * GET /entity/search
 * Search for an entity
@@ -15,21 +17,20 @@ var mongoose = require('mongoose');
 
 var entitySearch = function(req, res, next) {
   var cookieJar = request.jar();
-  var rootUrl = 'http://www.sl.universalservice.org/Utilities';
 
   if (!req.query || !req.query.zipCode) {
     res.statusCode = 404;
     return res.send();
   }
   request.get({
-    url: rootUrl + '/BilledEntitySearch_Public.asp',
+    url: rootUrl + 'BilledEntitySearch_Public.asp',
     jar: cookieJar
   }, function(err, resp, body){
 
     var zipCode = req.query.zipCode;
 
     request.post({
-      url:rootUrl + '/BilledEntityDisplay_Public.asp#sop',
+      url:rootUrl + 'BilledEntityDisplay_Public.asp#sop',
       jar: cookieJar,
       form: {
         btnType: 'All+Entity+Types',
@@ -52,6 +53,7 @@ var entitySearch = function(req, res, next) {
             var cols = $(this).children();
             results[idx-1] = {
               identifier: cols.eq(0).text().trim(),
+              href: $(this).find('a').attr('href'),
               name: cols.eq(1).text().trim(),
               state: cols.eq(2).text().trim(),
               category: cols.eq(3).text().trim(),
@@ -96,6 +98,35 @@ var entitySearch = function(req, res, next) {
 };
 
 
+var entityDetails = function(req, res, next) {
+  var cookieJar = request.jar();
+
+  var Entity = mongoose.model('entity');
+  Entity.find({identifier: req.params.id}, function(err, entities) {
+    if (entities.length === 0) {
+      res.statusCode = 404;
+      return res.send();
+    }
+    request.get({
+      url: rootUrl + entities[0].href,
+      jar: cookieJar
+    }, function(err, resp, body){
+      var $ = cheerio.load(body);
+      var $table = $('table').eq(2);
+      var $tbody = $table.children().eq(0);
+      var values = {
+        street: $tbody.children().eq(3).children().eq(1).text().trim(),
+        city: $tbody.children().eq(4).children().eq(1).text().trim()
+      };
+
+      Entity.findByIdAndUpdate(entities[0]._id, { $set: values}, function (err, entity) {
+        res.send(entity);
+      });
+    });
+  });
+};
+
 module.exports = {
-  entitySearch: entitySearch
+  entitySearch: entitySearch,
+  entityDetails: entityDetails
 };
