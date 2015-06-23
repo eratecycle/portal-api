@@ -4,13 +4,11 @@
 
 // TO-DO: doesn't get the year right when the statement covers two years e.g. the statement is dated January 2014 but contains transactions from December 2013
 
-var _          = require('lodash');
+var _          = require('highland');
 var fs         = require('fs');
 var accounting = require('accounting');
 
 var BillTypes  = require('./bill-types').BillTypes;
-
-var hj         = require('highland');
 
 // HACK few hacks to let PDF.js be loaded not as a module in global space.
 global.window = global;
@@ -133,13 +131,26 @@ function identifyBill(text) {
 function getChargesForService(lines, service) {
   // console.log('getChargesForService');
   var result = [];
-  var dataServicesLine = _.findIndex(lines,function(line){
+  var dataServicesIndex = 0;
+  var totalDataServicesIndex = 0;
+
+  var findServiceLine = function(line){
     return line.indexOf(service) > -1;
-  });
-  var totalDataServicesLine = _.findIndex(lines,function(line){
+  }
+
+  var findTotalLine = function(line){
     return line.indexOf('Total ' + service) > -1;
+  }
+
+  _(lines).find(findServiceLine).apply(function(line){
+    dataServicesIndex = lines.indexOf(line);
   });
-  for (var i = dataServicesLine + 1; i < totalDataServicesLine; i++ ) {
+
+  _(lines).find(findTotalLine).apply(function(line){
+    totalDataServicesIndex = lines.indexOf(line);
+  });
+
+  for (var i = dataServicesIndex + 1; i < totalDataServicesIndex; i++ ) {
     var values = lines[i].split('$');
     result.push({
       description: values[0].trim(),
@@ -162,7 +173,12 @@ function getCharges(text, lines) {
     serviceValues.forEach(function(service){
       results.push(getChargesForService(lines,service));
     });
-    return _.flatten(results);
+
+    _(results).flatten().toArray(function(flatArray){
+      results = flatArray;
+    });
+
+    return results;
   }
 }
 
@@ -171,8 +187,15 @@ function getStatementDate(text, lines) {
   // console.log('getStatementDate');
   var index = text.indexOf(statementSummary);
   if (index > -1) {
-    var dateLine = _.findIndex(lines, function(line){
+
+    var dateLine = 0;
+
+    var invoiceDate = function(line){
       return line.indexOf('Invoice Date:') > -1;
+    }
+
+    _(lines).find(invoiceDate).apply(function(line){
+      dateLine = lines.indexOf(line);
     });
     return lines[dateLine].split(':')[1].trim();
   }
