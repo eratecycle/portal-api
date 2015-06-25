@@ -235,10 +235,10 @@ function parsePDFPath(pdfPath, callback) {
   // console.log('# Starting '+pdfPath);
 
   // Loading file from file system into typed array
-  var buffers = [];
   _(fs.createReadStream(pdfPath))
-  .each(function(data){ buffers.push(data); })
-  .done(function() { parsePDFStatement(new Uint8Array( Buffer.concat(buffers) ), callback) });
+  .toArray(function(buffers) {
+    parsePDFStatement(new Uint8Array( Buffer.concat(buffers) ), callback)
+  });
 
 }
 
