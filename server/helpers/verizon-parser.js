@@ -20,7 +20,7 @@ global.DOMParser = require('pdfjs-dist/build/pdf.combined').DOMParserMock;
 * Parse a PDF data stream for statement data
 * Safe to use in a browser
 */
-function parsePDFStatement(data, fileName, callback) {
+function parsePDFStatement(data, callback) {
 
   // reset global variable each time
   var totalPaymentsFromStatement = 0;
@@ -235,12 +235,10 @@ function parsePDFPath(pdfPath, callback) {
   // console.log('# Starting '+pdfPath);
 
   // Loading file from file system into typed array
-  fs.readFile(pdfPath, function(err, data){
-    if (err) {
-      return callback(err);
-    }
-    parsePDFStatement(new Uint8Array(data), pdfPath, callback);
-  });
+  var buffers = [];
+  _(fs.createReadStream(pdfPath))
+  .each(function(data){ buffers.push(data); })
+  .done(function() { parsePDFStatement(new Uint8Array( Buffer.concat(buffers) ), callback) });
 
 }
 
