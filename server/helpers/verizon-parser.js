@@ -44,46 +44,48 @@ function processDoc(doc) {
   return lastPromise;
 }
 
+function addPadding(content, item, i) {
+  //console.info(JSON.stringify(item));
+  // add an appropriate whitespace character here if the next item is on the same line and more than 5px to the right, or is on the next line
+  // item.transform[4] is the x coordinate
+  // item.transform[5] is the y coordinate
+  var nextItem = content.items[i+1];
+  var padding = '';
+  if(nextItem) {
+    var isOnSameLine = nextItem.transform[5] === item.transform[5]; // transform[5] is y coordinate
+    var isFarAway = nextItem.transform[4] - (item.transform[4] + item.width) > 5; // transform[4] is x coordinate
+    //console.info('distance to next item', nextItem.transform[4] - item.transform[4],item.str,nextItem.str);
+    if(!isOnSameLine) {
+      padding = '\\n';
+    }
+    if(isFarAway) {
+      padding = '\t';
+    }
+  }
+  return item.str+padding;
+}
+
+function processContent(pageNum, content) {
+  // Content contains lots of information about the text layout and
+  // styles, but we need only strings at the moment
+  var strings = content.items.map(_.partial(addPadding, content));
+  // console.log('## Text Content');
+  var text = strings.join('');
+  // console.log(text);
+  if (pageNum === 1) {
+    var billType = identifyBill(text);
+    // console.log('bill identified as: '+billType);
+  }
+  processStatementPage(text, pageNum);
+  // console.info('# Transactions analysed');
+}
+
 function getTextContent(pageNum, page) {
   // console.info('# Page ' + pageNum);
   var viewport = page.getViewport(1.0 /* scale */);
   // console.info('Size: ' + viewport.width + 'x' + viewport.height);
   // console.info();
-  return page.getTextContent().then(function (content) {
-    // Content contains lots of information about the text layout and
-    // styles, but we need only strings at the moment
-    var strings = content.items.map(function (item, i) {
-      //console.info(JSON.stringify(item));
-      // add an appropriate whitespace character here if the next item is on the same line and more than 5px to the right, or is on the next line
-      // item.transform[4] is the x coordinate
-      // item.transform[5] is the y coordinate
-      var nextItem = content.items[i+1];
-      var padding = '';
-      if(nextItem) {
-        var isOnSameLine = nextItem.transform[5] === item.transform[5]; // transform[5] is y coordinate
-        var isFarAway = nextItem.transform[4] - (item.transform[4] + item.width) > 5; // transform[4] is x coordinate
-        //console.info('distance to next item', nextItem.transform[4] - item.transform[4],item.str,nextItem.str);
-        if(!isOnSameLine) {
-          padding = '\\n';
-        }
-        if(isFarAway) {
-          padding = '\t';
-        }
-      }
-      return item.str+padding;
-    });
-    // console.log('## Text Content');
-    var text = strings.join('');
-    // console.log(text);
-    if (pageNum === 1) {
-      var billType = identifyBill(text);
-      // console.log('bill identified as: '+billType);
-    }
-    processStatementPage(text, pageNum);
-    // console.info('# Transactions analysed');
-  }).then(function () {
-    // console.info();
-  });
+  return page.getTextContent().then(_.partial(processContent, pageNum));
 }
 
 function loadPage(doc, pageNum) {
