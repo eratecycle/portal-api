@@ -39,7 +39,10 @@ function processDoc(doc) {
   // Loading of the first page will wait on metadata and subsequent loadings
   // will wait on the previous pages.
   for (var i = 1; i <= numPages; i++) {
-    lastPromise = lastPromise.then(_.partial(loadPage,doc, i));
+    lastPromise = lastPromise
+    .then(_.partial(loadPage, doc, i))
+    .then(_.partial(getTextContent, i))
+    .then(_.partial(processContent, i));
   }
   return lastPromise;
 }
@@ -85,11 +88,11 @@ function getTextContent(pageNum, page) {
   var viewport = page.getViewport(1.0 /* scale */);
   // console.info('Size: ' + viewport.width + 'x' + viewport.height);
   // console.info();
-  return page.getTextContent().then(_.partial(processContent, pageNum));
+  return page.getTextContent();
 }
 
 function loadPage(doc, pageNum) {
-  return doc.getPage(pageNum).then(_.partial(getTextContent, pageNum));
+  return doc.getPage(pageNum);
 };
 
 // process the first page of the bill to identify the billType
