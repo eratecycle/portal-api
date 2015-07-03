@@ -1,7 +1,7 @@
 'use strict';
 
 var config = require('../config/env/default');
-var parsePDFStatement = require('../helpers/verizon-parser');
+var parsePDFStatement = require('../helpers/parser');
 
 /**
  * GET /files

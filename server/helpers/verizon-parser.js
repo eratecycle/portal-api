@@ -1,14 +1,8 @@
-// Requires single file built version of PDF.js -- please run
-// `node make singlefile` before running the example.
-//
-
 // TO-DO: doesn't get the year right when the statement covers two years e.g. the statement is dated January 2014 but contains transactions from December 2013
 
 var _          = require('highland');
 var fs         = require('fs');
 var accounting = require('accounting');
-
-var BillTypes  = require('./bill-types').BillTypes;
 
 // HACK few hacks to let PDF.js be loaded not as a module in global space.
 global.window = global;
@@ -75,10 +69,6 @@ function processContent(pageNum, content) {
   // console.log('## Text Content');
   var text = strings.join('');
   // console.log(text);
-  if (pageNum === 1) {
-    var billType = identifyBill(text);
-    // console.log('bill identified as: '+billType);
-  }
   processStatementPage(text, pageNum);
   // console.info('# Transactions analysed');
 }
