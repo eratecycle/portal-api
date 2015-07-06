@@ -10,8 +10,9 @@ global.navigator = { userAgent: "node" };
 global.PDFJS = {};
 global.DOMParser = require('pdfjs-dist/build/pdf.combined').DOMParserMock;
 
-var verizonParser = require('./parsers/verizon');
-var parsers = [verizonParser];
+var parsers = [
+  require('./parsers/verizon')
+];
 
 function getPage(pageNum, doc) {
   return doc.getPage(pageNum);
@@ -67,10 +68,12 @@ function processContent(pageNum, content) {
 
 function findParser(billSummary, text) {
   if (billSummary.parser === undefined) {
-    parsers.forEach(function(possibleParser) {
-      if (possibleParser.canProcessBill(text)) {
-        billSummary.parser = possibleParser;
-      }
+    _(parsers)
+    .find(function(possibleParser){
+      return possibleParser.canProcessBill(text);
+    })
+    .each(function(parser){
+      billSummary.parser = parser;
     })
   }
   return text;

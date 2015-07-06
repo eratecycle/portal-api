@@ -1,9 +1,9 @@
 var _          = require('highland');
 
-var currentChargesSummary = require('./verizon/current-charges-summary');
-var statementOfAccount    = require('./verizon/statement-of-account');
-
-var processors = [currentChargesSummary, statementOfAccount];
+var processors = [
+  require('./verizon/current-charges-summary'),
+  require('./verizon/statement-of-account')
+];
 
 // takes in the first page of text and returns whether it can process this bill
 function canProcessBill(pageText) {
@@ -39,10 +39,12 @@ function processStatementPage(pageNum, billSummary, pageText) {
     billSummary.currentTransactionDate = getStatementDate(pageText);
   }
 
-  processors.forEach(function(processor) {
-    if (processor.canProcessPage(pageText)) {
-      processor.parsePage(pageText, billSummary);
-    }
+  _(processors)
+  .filter(function(processor){
+    return processor.canProcessPage(pageText);
+  })
+  .each(function(processor){
+    processor.parsePage(pageText, billSummary)
   });
 
   return billSummary;
