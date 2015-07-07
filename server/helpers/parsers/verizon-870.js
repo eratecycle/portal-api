@@ -1,15 +1,14 @@
 var _          = require('highland');
 
 var processors = [
-  require('./verizon/current-charges-summary'),
-  require('./verizon/statement-of-account'),
-  require('./verizon/statement-summary')
+  // require('./verizon/current-charges-summary')
 ];
 
 // takes in the first page of text and returns whether it can process this bill
 function canProcessBill(pageText) {
-  var index = pageText.indexOf('Verizon');
-  if (index === 4) {
+  var index = pageText.indexOf('500 TECHNOLOGY DR., STE 870');
+  if (index === 2) {
+    console.info('Using Verizon-870 for bill processing...');
     return true;
   }
   return false;

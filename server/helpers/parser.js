@@ -9,9 +9,11 @@ global.window = global;
 global.navigator = { userAgent: "node" };
 global.PDFJS = {};
 global.DOMParser = require('pdfjs-dist/build/pdf.combined').DOMParserMock;
+// global.compatibility = require('pdfjs-dist/web/compatibility');
 
 var parsers = [
-  require('./parsers/verizon')
+  require('./parsers/verizon-840'),
+  require('./parsers/verizon-870')
 ];
 
 function getPage(pageNum, doc) {
@@ -80,7 +82,10 @@ function findParser(billSummary, text) {
 }
 
 function processStatementPage(i, billSummary, text) {
-  return billSummary.parser.processStatementPage(i, billSummary, text);
+  if (billSummary.parser) {
+    return billSummary.parser.processStatementPage(i, billSummary, text);
+  }
+  return billSummary;
 }
 
 function processPages(doc) {
