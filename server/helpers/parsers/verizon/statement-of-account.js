@@ -12,7 +12,7 @@ function canProcessPage(pageText) {
 }
 
 
-function parsePage(pageText) {
+function parsePage(pageText, billSummary) {
 
 }
 

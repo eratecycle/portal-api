@@ -2,7 +2,8 @@ var _          = require('highland');
 
 var processors = [
   require('./verizon/current-charges-summary'),
-  require('./verizon/statement-of-account')
+  require('./verizon/statement-of-account'),
+  require('./verizon/statement-summary')
 ];
 
 // takes in the first page of text and returns whether it can process this bill

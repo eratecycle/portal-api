@@ -88,10 +88,6 @@ function processPages(doc) {
   var lastPromise = doc.getMetadata().then(_.partial(printMetadata, doc));
 
   var billSummary = {
-    totalPaymentsFromStatement: 0,
-    totalPaymentsFromTransactions: 0,
-    totalReceiptsFromStatement: 0,
-    totalReceiptsFromTransactions: 0,
     transactions: []
   };
 
@@ -120,15 +116,22 @@ function printMetadata(doc, data) {
   return doc;
 }
 
+function formatTransaction(transaction) {
+  return transaction.date+' '+transaction.description+': '+transaction.amount;
+}
+
 function endDoc(callback, billSummary) {
   console.info('# End of Document');
-  var transactionsList = billSummary.transactions.map(function(transaction) { return transaction.date+'\t'+transaction.description+'\t'+transaction.amount; }).join('\n');
+  console.info('### Bill Summary ###');
+  console.info(JSON.stringify(billSummary, null, 2));
+  console.info('### Bill Summary ###');
+  var transactionsList = billSummary.transactions.map(formatTransaction).join('\n');
   console.info(transactionsList);
   // console.log('Totals from statement: payments '+totalPaymentsFromStatement+', receipts '+totalReceiptsFromStatement);
   // console.log('Totals from transactions: payments '+totalPaymentsFromTransactions.toFixed(2)+', receipts '+totalReceiptsFromTransactions.toFixed(2));
-  var errorsInPayments = (billSummary.totalPaymentsFromTransactions-billSummary.totalPaymentsFromStatement).toFixed(2);
-  var errorsInReceipts = (billSummary.totalReceiptsFromTransactions-billSummary.totalReceiptsFromStatement).toFixed(2);
-  console.warn('Errors: payments '+errorsInPayments+', receipts '+errorsInReceipts);
+  // var errorsInPayments = (billSummary.totalPaymentsFromTransactions-billSummary.totalPaymentsFromStatement).toFixed(2);
+  // var errorsInReceipts = (billSummary.totalReceiptsFromTransactions-billSummary.totalReceiptsFromStatement).toFixed(2);
+  // console.warn('Errors: payments '+errorsInPayments+', receipts '+errorsInReceipts);
   callback(null, billSummary.transactions);
 }
 

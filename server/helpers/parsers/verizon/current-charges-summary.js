@@ -16,8 +16,8 @@ function canProcessPage(pageText) {
 function getChargesForService(lines, service) {
   // console.info('getChargesForService');
   var result = [];
-  var dataServicesIndex = 0;
-  var totalDataServicesIndex = 0;
+  var serviceIndex = 0;
+  var serviceTotalIndex = 0;
 
   var findServiceLine = function(line){
     return line.indexOf(service) > -1;
@@ -28,17 +28,18 @@ function getChargesForService(lines, service) {
   }
 
   _(lines).find(findServiceLine).apply(function(line){
-    dataServicesIndex = lines.indexOf(line);
+    serviceIndex = lines.indexOf(line);
   });
 
   _(lines).find(findTotalLine).apply(function(line){
-    totalDataServicesIndex = lines.indexOf(line);
+    serviceTotalIndex = lines.indexOf(line);
   });
 
-  for (var i = dataServicesIndex + 1; i < totalDataServicesIndex; i++ ) {
+  for (var i = serviceIndex + 1; i < serviceTotalIndex; i++ ) {
     var values = lines[i].split('$');
     result.push({
       description: values[0].trim(),
+      estimatedTaxes: accounting.unformat(values[values.length-2].trim()),
       total: accounting.unformat(values[values.length-1].trim())
     });
   }
