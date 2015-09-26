@@ -30,20 +30,21 @@ module.exports.importFile = function(mongoose, filePath, csvMappings, modelName,
 
       csvMappings.forEach(function(mapping) {
         var val = data[mapping.idx];
-
         if (val !== '') {
           obj.set(mapping.prop, val);
         }
       });
 
-      obj.save(function(err) {
-        if (err) {
-          console.log(err);
-        }
-      });
+      if (obj.get('service_code') && (obj.get('charge_amount')||obj.get('tax_amount'))) {
+        obj.save(function(err) {
+          if (err) {
+            console.log(err);
+          }
+        });
+      }
     })
     .on('end', function() {
-      console.log("done");
+      console.log(filePath + ' completed');
       cb();
     });
 }

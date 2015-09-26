@@ -1,16 +1,8 @@
 var csv = require('./csv');
 var mongoose = require('mongoose');
+var fs = require('fs');
+var async = require('async');
 var db = require('../server/config/database')();
-
-// Verify database connection
-mongoose.connection.on('connected', function() {
-  console.log('✔ MongoDB Connection Success!'.green);
-});
-
-mongoose.connection.on('error', function() {
-  throw '✗ MongoDB Connection Error. Please make sure MongoDB is running.'.red;
-});
-
 
 var csvMappings = [
   {col: 'AT&T TAX NO', prop:'tax_id'},
@@ -26,8 +18,31 @@ var csvMappings = [
   {col: 'TAX', prop: 'tax_amount'},
 ]
 
+// Verify database connection
+mongoose.connection.on('connected', function() {
+  console.log('✔ MongoDB Connection Success!'.green);
+});
+
+mongoose.connection.on('error', function() {
+  throw '✗ MongoDB Connection Error. Please make sure MongoDB is running.'.red;
+});
+
 //adjust this path to the correct location
-var fileName = '/Users/nicknance/Downloads/ycsd_csv_original_files/8310002754302_UB_MNS_01012015_9218116203_64206663.csv';
-csv.importFile(mongoose, fileName, csvMappings, 'invoice', function(){
-  mongoose.disconnect();
+var dirName = '/Users/nicknance/Downloads/ycsd_csv_original_files/';
+var fileName = dirName + '8310002754302_UB_MNS_01012015_9218116203_64206663.csv';
+
+fs.readdir(dirName, function(err, files) {
+  async.each(files,
+    function(item, cb) {
+      csv.importFile(mongoose, dirName + item, csvMappings, 'invoice', cb);
+    },
+    function(err){
+      if (err) {
+        console.dir(err);
+      } else {
+        console.log('done');
+        mongoose.disconnect();
+      }
+    }
+  );
 });
