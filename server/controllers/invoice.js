@@ -109,9 +109,32 @@ var getServiceRates = function(req, res, next) {
   });
 };
 
+var getMonthlyTotalsByService = function(req, res, next) {
+  Invoice.aggregate([
+    {$match: {
+      charge_type: {$in:['Monthly Charges','Line Charge','Plan Minutes']}
+    }},
+    {$group : {
+      _id : {date: '$invoice_date', charge_type: '$charge_type', service_type: '$service_type'},
+      sum : {$sum : '$charge_amount'}
+    }}
+  ], function(err, result) {
+    if (err) {
+      return next(err);
+    }
+    var results = result.map(function(item) {
+      var result = item._id;
+      result.sum = Number((item.sum/100).toFixed(2));
+      return result;
+    });
+    res.send(results);
+  });
+};
+
 module.exports = {
   getLocations: getLocations,
   getCharges: getCharges,
   getServices: getServices,
-  getServiceRates: getServiceRates
+  getServiceRates: getServiceRates,
+  getMonthlyTotalsByService: getMonthlyTotalsByService
 };
