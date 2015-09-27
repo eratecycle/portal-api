@@ -1,6 +1,7 @@
 'use strict';
 
 var config = require('../config/env/default');
+var Bill = require('mongoose').model('bill');
 var parsePDFStatement = require('../helpers/parser');
 
 /**
@@ -9,8 +10,13 @@ var parsePDFStatement = require('../helpers/parser');
  */
 
 var getDocuments = function(req, res) {
-  res.send();
-};
+  Bill.find('', function(err, bills) {
+    if (err) {
+      return next(err);
+    }
+
+    res.send(bills);
+  });};
 
 /**
  * POST /files

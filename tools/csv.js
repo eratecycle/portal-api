@@ -1,9 +1,11 @@
 var _ = require('lodash');
 var csv = require('fast-csv');
 
-module.exports.importFile = function(mongoose, filePath, csvMappings, modelName, cb) {
+module.exports.importFile = function(mongoose, filePath, csvMappings, cb) {
   var header = '';
   var occurrences = [];
+  var pathSplit = filePath.split('/');
+  var fileName = pathSplit[pathSplit.length-1];
   csv
     .fromPath(filePath)
     .on('data', function(data) {
@@ -25,7 +27,7 @@ module.exports.importFile = function(mongoose, filePath, csvMappings, modelName,
 
       if (data[0] !== 'D') return;
 
-      var Obj = mongoose.model(modelName);
+      var Obj = mongoose.model('invoice');
       var obj = new Obj();
 
       csvMappings.forEach(function(mapping) {
@@ -44,7 +46,12 @@ module.exports.importFile = function(mongoose, filePath, csvMappings, modelName,
       }
     })
     .on('end', function() {
-      console.log(filePath + ' completed');
-      cb();
+      var Bill = mongoose.model('bill');
+      var bill = new Bill();
+      bill.set('file_name', fileName);
+      bill.save(function(){
+        console.log(filePath + ' completed');
+        cb();
+      });
     });
 }

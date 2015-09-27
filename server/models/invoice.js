@@ -8,12 +8,12 @@ var invoiceSchema = new mongoose.Schema({
     lowercase: true
   },
   'tax_id': String,
-  'Sum/Det IND': String,
   'invoice_date': String,
   'invoice_number': String,
   'account_number': String,
   'location_id': String,
   'location_name': String,
+  'service_id': String,
   'service_code': String,
   'service_type': String,
   'charge_type': String,

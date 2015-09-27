@@ -11,6 +11,7 @@ var csvMappings = [
   {col: 'MASTER ACCOUNT NUMBER', prop: 'account_number'},
   {col: 'GROUP NUMBER', prop: 'location_id'},
   {col: 'GROUP LABEL', prop: 'location_name'},
+  {col: 'SERVICE ID', prop: 'service_id'},
   {col: 'SERVICE TYPE CODE', prop: 'service_code'},
   {col: 'SERVICE TYPE', prop: 'service_type'},
   {col: 'SERVICE DESCRIPTION', occurrence: 2, prop: 'charge_type'},
@@ -34,7 +35,7 @@ var fileName = dirName + '8310002754302_UB_MNS_01012015_9218116203_64206663.csv'
 fs.readdir(dirName, function(err, files) {
   async.each(files,
     function(item, cb) {
-      csv.importFile(mongoose, dirName + item, csvMappings, 'invoice', cb);
+      csv.importFile(mongoose, dirName + item, csvMappings, cb);
     },
     function(err){
       if (err) {

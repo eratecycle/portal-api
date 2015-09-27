@@ -15,14 +15,10 @@ var getLocations = function(req, res, next) {
   Invoice.aggregate([
     { $group: {
       _id: {
-        id: '$GROUP NUMBER',
-        label:'$GROUP LABEL'
+        id: '$location_id',
+        label:'$location_name'
       }
     }},
-    {
-      $match: {
-        '_id.id': { $gte: 0 } }
-    },
     {
       $sort:{
         '_id.label':1
@@ -41,12 +37,9 @@ var getServices = function(req, res, next) {
   Invoice.aggregate([
     { $group: {
       _id: {
-        id: '$SERVICE TYPE CODE',
-        label:'$SERVICE TYPE'
+        id: '$service_code',
+        label:'$service_type'
       }
-    }},
-    { $match: {
-        '_id.id': { $gte: 0 }
     }},
     { $sort: {
       '_id.label':1
@@ -62,9 +55,8 @@ var getServices = function(req, res, next) {
 // List each monthly charge for the given location
 var getCharges = function(req, res, next) {
   Invoice.find({
-    'Sum/Det IND':'D',
-    'GROUP NUMBER': parseInt(req.query.group),
-    'SERVICE DESCRIPTIONb': 'Monthly Charges'
+    'location_id': req.query.group,
+    'charge_type': 'Monthly Charges'
   }, function(err, result) {
     if (err) {
       return next(err);
@@ -76,21 +68,20 @@ var getCharges = function(req, res, next) {
 // Produces a count of each unique charge for a given service
 var getServiceRates = function(req, res, next) {
   var match = {
-    'Sum/Det IND':'D',
-    'SERVICE TYPE CODE': parseInt(req.query.code),
-    'SERVICE DESCRIPTIONb': 'Monthly Charges'
+    'service_code': req.query.code,
+    'charge_type': 'Monthly Charges'
   };
 
   if (req.query.group) {
-    match['GROUP NUMBER'] = parseInt(req.query.group)
+    match['location_id'] = req.query.groups
   }
 
   Invoice.aggregate([
     { $match: match},
     { $group : {
         _id : {
-          rate: '$PREDISCOUNTED CHARGEb',
-          rate_type: '$SERVICE DESCRIPTIONb'
+          rate: '$charge_amount',
+          rate_type: '$charge_type'
         },
         count : {$sum : 1}
     }}
@@ -117,6 +108,9 @@ var getMonthlyTotalsByService = function(req, res, next) {
     {$group : {
       _id : {date: '$invoice_date', charge_type: '$charge_type', service_type: '$service_type'},
       sum : {$sum : '$charge_amount'}
+    }},
+    { $sort: {
+      '_id.date':1
     }}
   ], function(err, result) {
     if (err) {
