@@ -52,6 +52,24 @@ var getServices = function(req, res, next) {
   });
 };
 
+var getDates = function(req, res, next) {
+  Invoice.aggregate([
+    { $group: {
+      _id: {
+        date: '$invoice_date'
+      }
+    }},
+    { $sort: {
+      '_id.date':1
+    }}
+  ], function(err, result) {
+    if (err) {
+      return next(err);
+    }
+    res.send(_.pluck(result,'_id'));
+  });
+};
+
 // List each monthly charge for the given location
 var getCharges = function(req, res, next) {
   Invoice.find({
@@ -68,9 +86,16 @@ var getCharges = function(req, res, next) {
 // Produces a count of each unique charge for a given service
 var getServiceRates = function(req, res, next) {
   var match = {
-    'service_code': req.query.code,
-    'charge_type': 'Monthly Charges'
+    'service_code': req.query.service_code,
   };
+
+  if (req.query.rate_type) {
+    match['charge_type'] = req.query.rate_type
+  }
+
+  if (req.query.to_date && req.query.from_date) {
+    match['invoice_date'] = {$gt: req.query.from_date, $lt: req.query.to_date}
+  }
 
   if (req.query.group) {
     match['location_id'] = req.query.groups
@@ -84,6 +109,9 @@ var getServiceRates = function(req, res, next) {
           rate_type: '$charge_type'
         },
         count : {$sum : 1}
+    }},
+    { $sort: {
+      '_id.rate':-1
     }}
   ], function(err, result) {
     if (err) {
@@ -93,6 +121,36 @@ var getServiceRates = function(req, res, next) {
       return {
         rate_type: rate._id.rate_type,
         rate: rate._id.rate,
+        count: rate.count
+      }
+    });
+    res.send(result);
+  });
+};
+
+// Produces a count of each unique charge for a given service
+var getRateTypes = function(req, res, next) {
+  var match = {
+    'service_code': req.query.service_code
+  };
+
+  Invoice.aggregate([
+    { $match: {
+      'service_code': req.query.service_code
+    }},
+    { $group : {
+        _id : {
+          rate_type: '$charge_type'
+        },
+        count : {$sum : 1}
+    }}
+  ], function(err, result) {
+    if (err) {
+      return next(err);
+    }
+    var result = result.map(function(rate) {
+      return {
+        rate_type: rate._id.rate_type,
         count: rate.count
       }
     });
@@ -129,6 +187,8 @@ module.exports = {
   getLocations: getLocations,
   getCharges: getCharges,
   getServices: getServices,
+  getDates: getDates,
   getServiceRates: getServiceRates,
+  getRateTypes: getRateTypes,
   getMonthlyTotalsByService: getMonthlyTotalsByService
 };
