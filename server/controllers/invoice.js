@@ -94,7 +94,7 @@ var getServiceRates = function(req, res, next) {
   }
 
   if (req.query.to_date && req.query.from_date) {
-    match['invoice_date'] = {$gt: req.query.from_date, $lt: req.query.to_date}
+    match['invoice_date'] = {$gte: req.query.from_date, $lt: req.query.to_date}
   }
 
   if (req.query.group) {
@@ -111,7 +111,7 @@ var getServiceRates = function(req, res, next) {
         count : {$sum : 1}
     }},
     { $sort: {
-      '_id.rate':-1
+      '_id.rate':1
     }}
   ], function(err, result) {
     if (err) {
